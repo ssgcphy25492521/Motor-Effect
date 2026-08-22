@@ -52,7 +52,6 @@
             font-size: 16px;
         }
 
-        /* High-compatibility interactive dropdown fields */
         select {
             width: 100%;
             padding: 12px;
@@ -64,10 +63,6 @@
             border-radius: 6px;
             cursor: pointer;
             outline: none;
-        }
-
-        select:focus {
-            border-color: #00bfff;
         }
 
         .output {
@@ -91,157 +86,14 @@
             color: #2ecc71;
         }
 
-        .display-window {
+        canvas {
             background-color: #111116;
             border: 2px solid #3b3b4f;
             border-radius: 8px;
             width: 100%;
-            height: 400px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .wire-container {
-            position: absolute;
-            left: 50%;
-            top: 5%;
-            width: 24px;
-            height: 90%;
-            transform: translateX(-50%);
-            overflow: hidden;
-            z-index: 2;
-        }
-
-        .wire-core {
-            position: absolute;
-            top: 0;
-            left: 6px;
-            width: 12px;
-            height: 100%;
-            background-color: #7f8c8d;
-            border-radius: 4px;
-        }
-
-        .current-stream {
-            position: absolute;
-            width: 100%;
-            height: 200%;
-            top: 0;
-            left: 0;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-around;
-            align-items: center;
-        }
-
-        .current-arrow {
-            width: 0;
-            height: 0;
-            border-left: 10px solid transparent;
-            border-right: 10px solid transparent;
-        }
-
-        .current-arrow.up {
-            border-bottom: 25px solid #e74c3c;
-        }
-
-        .current-arrow.down {
-            border-top: 25px solid #e74c3c;
-        }
-
-        @keyframes flowUp {
-            0% { transform: translateY(0); }
-            100% { transform: translateY(-50%); }
-        }
-
-        @keyframes flowDown {
-            0% { transform: translateY(-50%); }
-            100% { transform: translateY(0); }
-        }
-
-        .field-grid {
-            position: absolute;
-            top: 10%;
-            left: 5%;
-            width: 90%;
-            height: 80%;
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            grid-template-rows: repeat(4, 1fr);
-            gap: 15px;
-            z-index: 1;
-        }
-
-        .grid-cell {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .field-symbol {
-            font-size: 24px;
-            font-weight: bold;
-            color: #3498db;
-            opacity: 0.8;
-        }
-
-        .field-line-row {
-            position: absolute;
-            width: 90%;
-            left: 5%;
-            height: 20px;
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            z-index: 1;
-        }
-
-        .field-arrow {
-            font-size: 22px;
-            font-weight: bold;
-            color: #3498db;
-        }
-
-        @keyframes shiftLeft {
-            0% { transform: translateX(20px); opacity: 0; }
-            50% { opacity: 1; }
-            100% { transform: translateX(-20px); opacity: 0; }
-        }
-
-        @keyframes shiftRight {
-            0% { transform: translateX(-20px); opacity: 0; }
-            50% { opacity: 1; }
-            100% { transform: translateX(20px); opacity: 0; }
-        }
-
-        .animate-left { animation: shiftLeft 1.5s infinite linear; }
-        .animate-right { animation: shiftRight 1.5s infinite linear; }
-
-        .force-overlay {
-            position: absolute;
-            bottom: 25px;
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            z-index: 3;
-        }
-
-        .visual-badge {
-            font-weight: bold;
-            font-size: 15px;
-            padding: 8px 14px;
-            border-radius: 6px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.5);
-            border: 1px solid rgba(255,255,255,0.2);
-        }
-
-        .badge-current { 
-            background-color: #e74c3c; 
-            position: absolute; 
-            top: 15px; 
-            left: 50%; 
-            transform: translateX(-50%); 
-            z-index: 4;
+            max-width: 500px;
+            aspect-ratio: 1 / 1;
+            display: block;
         }
     </style>
 </head>
@@ -250,10 +102,10 @@
     <h1>Magnetic Force</h1>
 
     <div class="container">
-        <!-- Control Box Panel at Top -->
+        <!-- Control Interface Panel -->
         <div class="panel">
             <div class="group">
-                <label for="currentSelect">1. Choose Current Direction (I):</label>
+                <label for="currentSelect">1. Current Direction (I):</label>
                 <select id="currentSelect">
                     <option value="up" selected>↑ UP (Flowing)</option>
                     <option value="down">↓ DOWN (Flowing)</option>
@@ -261,7 +113,7 @@
             </div>
 
             <div class="group">
-                <label for="fieldSelect">2. Choose Magnetic Field Direction (B):</label>
+                <label for="fieldSelect">2. Magnetic Field Direction (B):</label>
                 <select id="fieldSelect">
                     <option value="left" selected>← LEFT</option>
                     <option value="right">→ RIGHT</option>
@@ -271,76 +123,160 @@
             </div>
 
             <div class="output">
-                <div class="output-title">Direction of Force (F)</div>
+                <div class="output-title">Direction of Force (F) in Words</div>
                 <div class="output-text" id="forceResult">Out of the Page / Forward</div>
             </div>
         </div>
 
-        <!-- Simulation Viewport at Bottom -->
-        <div class="display-window">
-            <div class="visual-badge badge-current">Wire: Current (I)</div>
-            
-            <div class="wire-container">
-                <div class="wire-core"></div>
-                <div id="streamBox" class="current-stream" style="animation: flowUp 1.2s infinite linear;">
-                    <div class="current-arrow up"></div>
-                    <div class="current-arrow up"></div>
-                    <div class="current-arrow up"></div>
-                    <div class="current-arrow up"></div>
-                    <div class="current-arrow up"></div>
-                </div>
-            </div>
-
-            <div id="fieldMatrix"></div>
-            <div id="forceFeedback" class="force-overlay"></div>
-        </div>
+        <!-- Render Target Canvas Window -->
+        <canvas id="simCanvas" width="500" height="500"></canvas>
     </div>
 
     <script>
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
         const currentSelect = document.getElementById('currentSelect');
         const fieldSelect = document.getElementById('fieldSelect');
 
-        // Watch for standard menu choices
-        currentSelect.onchange = function() {
-            updateCurrentAnimation(this.value);
-            runPhysics();
-        };
+        // Continuous particle step index
+        let animationOffset = 0;
 
-        fieldSelect.onchange = function() {
-            runPhysics();
-        };
+        function drawVectorArrow(x1, y1, x2, y2, color, thickness = 4) {
+            ctx.strokeStyle = color;
+            ctx.fillStyle = color;
+            ctx.lineWidth = thickness;
+            ctx.lineCap = "round";
 
-        function updateCurrentAnimation(dir) {
-            const streamBox = document.getElementById('streamBox');
-            if (dir === 'up') {
-                streamBox.style.animation = 'flowUp 1.2s infinite linear';
-                streamBox.innerHTML = `
-                    <div class="current-arrow up"></div>
-                    <div class="current-arrow up"></div>
-                    <div class="current-arrow up"></div>
-                    <div class="current-arrow up"></div>
-                    <div class="current-arrow up"></div>
-                `;
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.stroke();
+
+            // Mathematically precise arrowhead rendering
+            const angle = Math.atan2(y2 - y1, x2 - x1);
+            const headLength = thickness * 3;
+            ctx.beginPath();
+            ctx.moveTo(x2, y2);
+            ctx.lineTo(x2 - headLength * Math.cos(angle - Math.PI / 6), y2 - headLength * Math.sin(angle - Math.PI / 6));
+            ctx.lineTo(x2 - headLength * Math.cos(angle + Math.PI / 6), y2 - headLength * Math.sin(angle + Math.PI / 6));
+            ctx.fill();
+        }
+
+        function drawSymbolMarker(x, y, mode, color) {
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(x, y, 12, 0, Math.PI * 2);
+            ctx.stroke();
+
+            if (mode === 'into') {
+                ctx.beginPath();
+                ctx.moveTo(x - 6, y - 6); ctx.lineTo(x + 6, y + 6);
+                ctx.moveTo(x + 6, y - 6); ctx.lineTo(x - 6, y + 6);
+                ctx.stroke();
             } else {
-                streamBox.style.animation = 'flowDown 1.2s infinite linear';
-                streamBox.innerHTML = `
-                    <div class="current-arrow down"></div>
-                    <div class="current-arrow down"></div>
-                    <div class="current-arrow down"></div>
-                    <div class="current-arrow down"></div>
-                    <div class="current-arrow down"></div>
-                `;
+                ctx.fillStyle = color;
+                ctx.beginPath();
+                ctx.arc(x, y, 3, 0, Math.PI * 2);
+                ctx.fill();
             }
         }
 
-        function runPhysics() {
+        function animationLoop() {
+            // Step particle positions forward sequentially
+            animationOffset += 1.5;
+            if (animationOffset > 100) animationOffset = 0;
+
             const currentDir = currentSelect.value;
             const fieldDir = fieldSelect.value;
             
-            let force = "";
-            let fieldHTML = "";
-            let forceHTML = "";
+            // Clean view screen
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+            const cx = canvas.width / 2;
+            const cy = canvas.height / 2;
+
+            // --- 1. RENDER MAGNETIC FIELD (B) MATRIX ---
+            const bColor = '#3498db';
+            if (fieldDir === 'left' || fieldDir === 'right') {
+                const shift = (fieldDir === 'left') ? -(animationOffset % 40) : (animationOffset % 40);
+                // Render horizontal field stream blocks
+                for (let y = 50; y < canvas.height; y += 80) {
+                    for (let x = -40; x < canvas.width + 40; x += 100) {
+                        // Avoid rendering text vectors directly over the physical wire center line
+                        if (Math.abs((x + shift) - cx) > 30) {
+                            if (fieldDir === 'left') {
+                                drawVectorArrow(x + shift + 40, y, x + shift, y, bColor, 2.5);
+                            } else {
+                                drawVectorArrow(x + shift, y, x + shift + 40, y, bColor, 2.5);
+                            }
+                        }
+                    }
+                }
+            } else {
+                // Render static point cross/dot matrix blocks around wire coordinates
+                for (let x = 60; x < canvas.width; x += 110) {
+                    for (let y = 60; y < canvas.height; y += 90) {
+                        if (Math.abs(x - cx) > 40) {
+                            drawSymbolMarker(x, y, fieldDir, bColor);
+                        }
+                    }
+                }
+            }
+
+            // --- 2. RENDER THE PHYSICAL CONDUCTOR WIRE (I) ---
+            ctx.strokeStyle = '#e74c3c';
+            ctx.lineWidth = 14;
+            ctx.lineCap = "square";
+            ctx.beginPath();
+            ctx.moveTo(cx, 20);
+            ctx.lineTo(cx, canvas.height - 20);
+            ctx.stroke();
+
+            // Render current flow dots tracing along the vertical vector track line
+            ctx.fillStyle = '#ffffff';
+            for (let y = 0; y < 5; y++) {
+                let dotY;
+                if (currentDir === 'up') {
+                    dotY = (canvas.height - 40) - ((y * 100 + animationOffset * 2) % (canvas.height - 40));
+                } else {
+                    dotY = 40 + ((y * 100 + animationOffset * 2) % (canvas.height - 40));
+                }
+                ctx.beginPath();
+                ctx.arc(cx, dotY, 4, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // --- 3. EVALUATE RIGHT-HAND RULE PHYSICS MATRIX ---
+            let forceDesc = "";
             if (currentDir === 'up') {
-                if (fieldDir === 'left')  force = "Out of the Page / Forward";
-                if (fieldDir === 'right') force = "Into the Page / Backward";
+                if (fieldDir === 'left')  forceDesc = "Out of the Page / Forward";
+                if (fieldDir === 'right') forceDesc = "Into the Page / Backward";
+                if (fieldDir === 'into')  forceDesc = "Left";
+                if (fieldDir === 'out')   forceDesc = "Right";
+            } else {
+                if (fieldDir === 'left')  forceDesc = "Into the Page / Backward";
+                if (fieldDir === 'right') forceDesc = "Out of the Page / Forward";
+                if (fieldDir === 'into')  forceDesc = "Right";
+                if (fieldDir === 'out')   forceDesc = "Left";
+            }
+            document.getElementById('forceResult').textContent = forceDesc;
+
+            // --- 4. RENDER FORCE (F) ARROW GRAPHIC OVERLAY ---
+            const fColor = '#2ecc71';
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = fColor;
+
+            if (forceDesc === "Left") {
+                drawVectorArrow(cx, cy, cx - 140, cy, fColor, 7);
+            } else if (forceDesc === "Right") {
+                drawVectorArrow(cx, cy, cx + 140, cy, fColor, 7);
+            } else if (forceDesc.includes("Into the Page")) {
+                // Visualizing 3D vectors via concentric incoming layers
+                ctx.strokeStyle = fColor;
+                ctx.lineWidth = 6;
+                ctx.beginPath();
+                ctx.arc(cx, cy, 35, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(cx - 20, cy - 20); ctx.lineTo(cx + 20, cy + 20);

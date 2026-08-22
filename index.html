@@ -33,53 +33,41 @@
             width: 100%;
         }
 
-        /* Controls Panel fully separated at the top */
         .panel {
             background-color: #242434;
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.3);
             width: 100%;
-            position: relative;
-            z-index: 10; /* Forces controls to stay on top */
         }
 
         .group {
-            margin-bottom: 20px;
+            margin-bottom: 25px;
         }
 
         label {
             display: block;
             font-weight: bold;
             margin-bottom: 10px;
+            font-size: 16px;
         }
 
-        .buttons {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-        }
-
-        button {
+        /* High-compatibility interactive dropdown fields */
+        select {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            font-weight: bold;
             background-color: #3b3b4f;
             color: white;
-            border: 2px solid transparent;
-            padding: 12px;
+            border: 2px solid #007acc;
             border-radius: 6px;
             cursor: pointer;
-            font-weight: bold;
-            font-size: 14px;
-            width: 100%;
-            display: block;
+            outline: none;
         }
 
-        button:hover {
-            background-color: #4c4c6d;
-        }
-
-        button.active {
-            background-color: #007acc !important;
-            border-color: #00bfff !important;
+        select:focus {
+            border-color: #00bfff;
         }
 
         .output {
@@ -103,7 +91,6 @@
             color: #2ecc71;
         }
 
-        /* Animation Display Box fully separated at the bottom */
         .display-window {
             background-color: #111116;
             border: 2px solid #3b3b4f;
@@ -112,7 +99,6 @@
             height: 400px;
             position: relative;
             overflow: hidden;
-            z-index: 1;
         }
 
         .wire-container {
@@ -267,21 +253,21 @@
         <!-- Control Box Panel at Top -->
         <div class="panel">
             <div class="group">
-                <label>1. Current Direction (I)</label>
-                <div class="buttons">
-                    <button id="btn-up" class="active">↑ UP (Flowing)</button>
-                    <button id="btn-down">↓ DOWN (Flowing)</button>
-                </div>
+                <label for="currentSelect">1. Choose Current Direction (I):</label>
+                <select id="currentSelect">
+                    <option value="up" selected>↑ UP (Flowing)</option>
+                    <option value="down">↓ DOWN (Flowing)</option>
+                </select>
             </div>
 
             <div class="group">
-                <label>2. Magnetic Field Direction (B)</label>
-                <div class="buttons">
-                    <button id="btn-left" class="active">← LEFT</button>
-                    <button id="btn-right">→ RIGHT</button>
-                    <button id="btn-into">⊗ INTO PLANE</button>
-                    <button id="btn-out">⊙ OUT OF PLANE</button>
-                </div>
+                <label for="fieldSelect">2. Choose Magnetic Field Direction (B):</label>
+                <select id="fieldSelect">
+                    <option value="left" selected>← LEFT</option>
+                    <option value="right">→ RIGHT</option>
+                    <option value="into">⊗ INTO PLANE</option>
+                    <option value="out">⊙ OUT OF PLANE</option>
+                </select>
             </div>
 
             <div class="output">
@@ -311,49 +297,50 @@
     </div>
 
     <script>
-        // Track states directly
-        let currentDir = 'up';
-        let fieldDir = 'left';
+        const currentSelect = document.getElementById('currentSelect');
+        const fieldSelect = document.getElementById('fieldSelect');
 
-        // Direct ID Targeting for absolute button execution
-        document.getElementById('btn-up').onclick = function() {
-            currentDir = 'up';
-            toggleCurrentActive(this);
-            updateCurrentAnimation('up');
+        // Watch for standard menu choices
+        currentSelect.onchange = function() {
+            updateCurrentAnimation(this.value);
             runPhysics();
         };
 
-        document.getElementById('btn-down').onclick = function() {
-            currentDir = 'down';
-            toggleCurrentActive(this);
-            updateCurrentAnimation('down');
+        fieldSelect.onchange = function() {
             runPhysics();
         };
 
-        document.getElementById('btn-left').onclick = function() {
-            fieldDir = 'left';
-            toggleFieldActive(this);
-            runPhysics();
-        };
+        function updateCurrentAnimation(dir) {
+            const streamBox = document.getElementById('streamBox');
+            if (dir === 'up') {
+                streamBox.style.animation = 'flowUp 1.2s infinite linear';
+                streamBox.innerHTML = `
+                    <div class="current-arrow up"></div>
+                    <div class="current-arrow up"></div>
+                    <div class="current-arrow up"></div>
+                    <div class="current-arrow up"></div>
+                    <div class="current-arrow up"></div>
+                `;
+            } else {
+                streamBox.style.animation = 'flowDown 1.2s infinite linear';
+                streamBox.innerHTML = `
+                    <div class="current-arrow down"></div>
+                    <div class="current-arrow down"></div>
+                    <div class="current-arrow down"></div>
+                    <div class="current-arrow down"></div>
+                    <div class="current-arrow down"></div>
+                `;
+            }
+        }
 
-        document.getElementById('btn-right').onclick = function() {
-            fieldDir = 'right';
-            toggleFieldActive(this);
-            runPhysics();
-        };
+        function runPhysics() {
+            const currentDir = currentSelect.value;
+            const fieldDir = fieldSelect.value;
+            
+            let force = "";
+            let fieldHTML = "";
+            let forceHTML = "";
 
-        document.getElementById('btn-into').onclick = function() {
-            fieldDir = 'into';
-            toggleFieldActive(this);
-            runPhysics();
-        };
-
-        document.getElementById('btn-out').onclick = function() {
-            fieldDir = 'out';
-            toggleFieldActive(this);
-            runPhysics();
-        };
-
-        function toggleCurrentActive(activeBtn) {
-            document.getElementById('btn-up').classList.remove('active');
-            document.getElementById('btn-down').classList.remove('active');
+            if (currentDir === 'up') {
+                if (fieldDir === 'left')  force = "Out of the Page / Forward";
+                if (fieldDir === 'right') force = "Into the Page / Backward";

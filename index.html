@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Magnetic Force</title>
     <style>
+        * {
+            box-sizing: border-box;
+        }
         body {
             font-family: Arial, sans-serif;
             background-color: #1a1a24;
@@ -17,25 +20,28 @@
         }
 
         h1 {
-            margin-bottom: 20px;
+            margin: 0 0 20px 0;
+            text-align: center;
         }
 
         .container {
             display: flex;
-            flex-wrap: wrap;
+            flex-direction: column;
             gap: 20px;
-            justify-content: center;
-            max-width: 950px;
+            align-items: center;
+            max-width: 500px;
             width: 100%;
         }
 
+        /* Controls Panel fully separated at the top */
         .panel {
             background-color: #242434;
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-            flex: 1;
-            min-width: 300px;
+            width: 100%;
+            position: relative;
+            z-index: 10; /* Forces controls to stay on top */
         }
 
         .group {
@@ -63,7 +69,8 @@
             cursor: pointer;
             font-weight: bold;
             font-size: 14px;
-            user-select: none;
+            width: 100%;
+            display: block;
         }
 
         button:hover {
@@ -71,8 +78,8 @@
         }
 
         button.active {
-            background-color: #007acc;
-            border-color: #00bfff;
+            background-color: #007acc !important;
+            border-color: #00bfff !important;
         }
 
         .output {
@@ -96,14 +103,16 @@
             color: #2ecc71;
         }
 
+        /* Animation Display Box fully separated at the bottom */
         .display-window {
             background-color: #111116;
             border: 2px solid #3b3b4f;
             border-radius: 8px;
-            width: 450px;
-            height: 450px;
+            width: 100%;
+            height: 400px;
             position: relative;
             overflow: hidden;
+            z-index: 1;
         }
 
         .wire-container {
@@ -175,7 +184,6 @@
             grid-template-rows: repeat(4, 1fr);
             gap: 15px;
             z-index: 1;
-            pointer-events: none;
         }
 
         .grid-cell {
@@ -200,7 +208,6 @@
             justify-content: space-around;
             align-items: center;
             z-index: 1;
-            pointer-events: none;
         }
 
         .field-arrow {
@@ -231,7 +238,6 @@
             display: flex;
             justify-content: center;
             z-index: 3;
-            pointer-events: none;
         }
 
         .visual-badge {
@@ -241,7 +247,6 @@
             border-radius: 6px;
             box-shadow: 0 4px 8px rgba(0,0,0,0.5);
             border: 1px solid rgba(255,255,255,0.2);
-            pointer-events: none;
         }
 
         .badge-current { 
@@ -259,23 +264,23 @@
     <h1>Magnetic Force</h1>
 
     <div class="container">
-        <!-- Control Box Panel -->
+        <!-- Control Box Panel at Top -->
         <div class="panel">
             <div class="group">
                 <label>1. Current Direction (I)</label>
-                <div class="buttons" id="currentGroup">
-                    <button class="active" data-val="up">↑ UP (Flowing)</button>
-                    <button data-val="down">↓ DOWN (Flowing)</button>
+                <div class="buttons">
+                    <button id="btn-up" class="active">↑ UP (Flowing)</button>
+                    <button id="btn-down">↓ DOWN (Flowing)</button>
                 </div>
             </div>
 
             <div class="group">
                 <label>2. Magnetic Field Direction (B)</label>
-                <div class="buttons" id="fieldGroup">
-                    <button class="active" data-val="left">← LEFT</button>
-                    <button data-val="right">→ RIGHT</button>
-                    <button data-val="into">⊗ INTO PLANE</button>
-                    <button data-val="out">⊙ OUT OF PLANE</button>
+                <div class="buttons">
+                    <button id="btn-left" class="active">← LEFT</button>
+                    <button id="btn-right">→ RIGHT</button>
+                    <button id="btn-into">⊗ INTO PLANE</button>
+                    <button id="btn-out">⊙ OUT OF PLANE</button>
                 </div>
             </div>
 
@@ -285,7 +290,7 @@
             </div>
         </div>
 
-        <!-- Simulation Viewport -->
+        <!-- Simulation Viewport at Bottom -->
         <div class="display-window">
             <div class="visual-badge badge-current">Wire: Current (I)</div>
             
@@ -306,42 +311,49 @@
     </div>
 
     <script>
-        // Set dynamic state tracking
+        // Track states directly
         let currentDir = 'up';
         let fieldDir = 'left';
 
-        // Bind Current Buttons explicitly via event listeners
-        const currentButtons = document.querySelectorAll('#currentGroup button');
-        currentButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                currentButtons.forEach(btn => btn.classList.remove('active'));
-                this.classList.add('active');
-                
-                currentDir = this.getAttribute('data-val');
-                updateCurrentAnimation(currentDir);
-                runPhysics();
-            });
-        });
+        // Direct ID Targeting for absolute button execution
+        document.getElementById('btn-up').onclick = function() {
+            currentDir = 'up';
+            toggleCurrentActive(this);
+            updateCurrentAnimation('up');
+            runPhysics();
+        };
 
-        // Bind Field Buttons explicitly via event listeners
-        const fieldButtons = document.querySelectorAll('#fieldGroup button');
-        fieldButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                fieldButtons.forEach(btn => btn.classList.remove('active'));
-                this.classList.add('active');
-                
-                fieldDir = this.getAttribute('data-val');
-                runPhysics();
-            });
-        });
+        document.getElementById('btn-down').onclick = function() {
+            currentDir = 'down';
+            toggleCurrentActive(this);
+            updateCurrentAnimation('down');
+            runPhysics();
+        };
 
-        function updateCurrentAnimation(dir) {
-            const streamBox = document.getElementById('streamBox');
-            if (dir === 'up') {
-                streamBox.style.animation = 'flowUp 1.2s infinite linear';
-                streamBox.innerHTML = `
-                    <div class="current-arrow up"></div>
-                    <div class="current-arrow up"></div>
-                    <div class="current-arrow up"></div>
-                    <div class="current-arrow up"></div>
-                    <div class="current-arrow up"></div>
+        document.getElementById('btn-left').onclick = function() {
+            fieldDir = 'left';
+            toggleFieldActive(this);
+            runPhysics();
+        };
+
+        document.getElementById('btn-right').onclick = function() {
+            fieldDir = 'right';
+            toggleFieldActive(this);
+            runPhysics();
+        };
+
+        document.getElementById('btn-into').onclick = function() {
+            fieldDir = 'into';
+            toggleFieldActive(this);
+            runPhysics();
+        };
+
+        document.getElementById('btn-out').onclick = function() {
+            fieldDir = 'out';
+            toggleFieldActive(this);
+            runPhysics();
+        };
+
+        function toggleCurrentActive(activeBtn) {
+            document.getElementById('btn-up').classList.remove('active');
+            document.getElementById('btn-down').classList.remove('active');

@@ -63,6 +63,7 @@
             cursor: pointer;
             font-weight: bold;
             font-size: 14px;
+            user-select: none;
         }
 
         button:hover {
@@ -105,7 +106,6 @@
             overflow: hidden;
         }
 
-        /* Central Wire Container */
         .wire-container {
             position: absolute;
             left: 50%;
@@ -113,7 +113,7 @@
             width: 24px;
             height: 90%;
             transform: translateX(-50%);
-            overflow: hidden; /* Clips the infinite moving arrows */
+            overflow: hidden;
             z-index: 2;
         }
 
@@ -127,11 +127,10 @@
             border-radius: 4px;
         }
 
-        /* Continuous Flowing Current Animation */
         .current-stream {
             position: absolute;
             width: 100%;
-            height: 200%; /* Extra height to cycle seamlessly */
+            height: 200%;
             top: 0;
             left: 0;
             display: flex;
@@ -165,7 +164,6 @@
             100% { transform: translateY(0); }
         }
 
-        /* Grid Layer for Dense Field Lines */
         .field-grid {
             position: absolute;
             top: 10%;
@@ -186,7 +184,6 @@
             justify-content: center;
         }
 
-        /* Pure CSS Field Line Symbols */
         .field-symbol {
             font-size: 24px;
             font-weight: bold;
@@ -194,7 +191,6 @@
             opacity: 0.8;
         }
 
-        /* Moving Arrow Field Lines for Left/Right */
         .field-line-row {
             position: absolute;
             width: 90%;
@@ -204,6 +200,7 @@
             justify-content: space-around;
             align-items: center;
             z-index: 1;
+            pointer-events: none;
         }
 
         .field-arrow {
@@ -227,7 +224,6 @@
         .animate-left { animation: shiftLeft 1.5s infinite linear; }
         .animate-right { animation: shiftRight 1.5s infinite linear; }
 
-        /* Force Feedback Overlays */
         .force-overlay {
             position: absolute;
             bottom: 25px;
@@ -245,9 +241,17 @@
             border-radius: 6px;
             box-shadow: 0 4px 8px rgba(0,0,0,0.5);
             border: 1px solid rgba(255,255,255,0.2);
+            pointer-events: none;
         }
 
-        .badge-current { background-color: #e74c3c; position: absolute; top: 15px; left: 50%; transform: translateX(-50%); z-index: 4;}
+        .badge-current { 
+            background-color: #e74c3c; 
+            position: absolute; 
+            top: 15px; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            z-index: 4;
+        }
     </style>
 </head>
 <body>
@@ -255,23 +259,23 @@
     <h1>Magnetic Force</h1>
 
     <div class="container">
-        <!-- Dashboard Control Box -->
+        <!-- Control Box Panel -->
         <div class="panel">
             <div class="group">
                 <label>1. Current Direction (I)</label>
-                <div class="buttons">
-                    <button class="active" onclick="updateCurrent('up', this)">↑ UP (Flowing)</button>
-                    <button onclick="updateCurrent('down', this)">↓ DOWN (Flowing)</button>
+                <div class="buttons" id="currentGroup">
+                    <button class="active" data-val="up">↑ UP (Flowing)</button>
+                    <button data-val="down">↓ DOWN (Flowing)</button>
                 </div>
             </div>
 
             <div class="group">
                 <label>2. Magnetic Field Direction (B)</label>
-                <div class="buttons">
-                    <button class="active" onclick="updateField('left', this)">← LEFT</button>
-                    <button onclick="updateField('right', this)">→ RIGHT</button>
-                    <button onclick="updateField('into', this)">⊗ INTO PLANE</button>
-                    <button onclick="updateField('out', this)">⊙ OUT OF PLANE</button>
+                <div class="buttons" id="fieldGroup">
+                    <button class="active" data-val="left">← LEFT</button>
+                    <button data-val="right">→ RIGHT</button>
+                    <button data-val="into">⊗ INTO PLANE</button>
+                    <button data-val="out">⊙ OUT OF PLANE</button>
                 </div>
             </div>
 
@@ -281,11 +285,10 @@
             </div>
         </div>
 
-        <!-- Safe Graphic Viewport -->
+        <!-- Simulation Viewport -->
         <div class="display-window">
             <div class="visual-badge badge-current">Wire: Current (I)</div>
             
-            <!-- Central Physical Wire Module -->
             <div class="wire-container">
                 <div class="wire-core"></div>
                 <div id="streamBox" class="current-stream" style="animation: flowUp 1.2s infinite linear;">
@@ -297,24 +300,43 @@
                 </div>
             </div>
 
-            <!-- Heavy Field Vectors Layers -->
             <div id="fieldMatrix"></div>
-
-            <!-- Resulting Force Presentation Layer -->
             <div id="forceFeedback" class="force-overlay"></div>
         </div>
     </div>
 
     <script>
+        // Set dynamic state tracking
         let currentDir = 'up';
         let fieldDir = 'left';
 
-        function updateCurrent(dir, btn) {
-            currentDir = dir;
-            clearActive(btn);
-            
+        // Bind Current Buttons explicitly via event listeners
+        const currentButtons = document.querySelectorAll('#currentGroup button');
+        currentButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                currentButtons.forEach(btn => btn.classList.remove('active'));
+                this.classList.add('active');
+                
+                currentDir = this.getAttribute('data-val');
+                updateCurrentAnimation(currentDir);
+                runPhysics();
+            });
+        });
+
+        // Bind Field Buttons explicitly via event listeners
+        const fieldButtons = document.querySelectorAll('#fieldGroup button');
+        fieldButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                fieldButtons.forEach(btn => btn.classList.remove('active'));
+                this.classList.add('active');
+                
+                fieldDir = this.getAttribute('data-val');
+                runPhysics();
+            });
+        });
+
+        function updateCurrentAnimation(dir) {
             const streamBox = document.getElementById('streamBox');
-            // Rebuild the arrows dynamically inside the flowing stream
             if (dir === 'up') {
                 streamBox.style.animation = 'flowUp 1.2s infinite linear';
                 streamBox.innerHTML = `
@@ -323,17 +345,3 @@
                     <div class="current-arrow up"></div>
                     <div class="current-arrow up"></div>
                     <div class="current-arrow up"></div>
-                `;
-            } else {
-                streamBox.style.animation = 'flowDown 1.2s infinite linear';
-                streamBox.innerHTML = `
-                    <div class="current-arrow down"></div>
-                    <div class="current-arrow down"></div>
-                    <div class="current-arrow down"></div>
-                    <div class="current-arrow down"></div>
-                    <div class="current-arrow down"></div>
-                `;
-            }
-            runPhysics();
-        }
-

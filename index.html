@@ -25,7 +25,7 @@
             flex-wrap: wrap;
             gap: 20px;
             justify-content: center;
-            max-width: 900px;
+            max-width: 950px;
             width: 100%;
         }
 
@@ -99,68 +99,155 @@
             background-color: #111116;
             border: 2px solid #3b3b4f;
             border-radius: 8px;
-            width: 400px;
-            height: 400px;
+            width: 450px;
+            height: 450px;
             position: relative;
             overflow: hidden;
         }
 
-        /* Pure CSS Simulation Elements */
-        .wire {
+        /* Central Wire Container */
+        .wire-container {
             position: absolute;
             left: 50%;
-            top: 10%;
-            width: 12px;
-            height: 80%;
-            background-color: #7f8c8d;
+            top: 5%;
+            width: 24px;
+            height: 90%;
             transform: translateX(-50%);
+            overflow: hidden; /* Clips the infinite moving arrows */
+            z-index: 2;
+        }
+
+        .wire-core {
+            position: absolute;
+            top: 0;
+            left: 6px;
+            width: 12px;
+            height: 100%;
+            background-color: #7f8c8d;
             border-radius: 4px;
+        }
+
+        /* Continuous Flowing Current Animation */
+        .current-stream {
+            position: absolute;
+            width: 100%;
+            height: 200%; /* Extra height to cycle seamlessly */
+            top: 0;
+            left: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            align-items: center;
+        }
+
+        .current-arrow {
+            width: 0;
+            height: 0;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+        }
+
+        .current-arrow.up {
+            border-bottom: 25px solid #e74c3c;
+        }
+
+        .current-arrow.down {
+            border-top: 25px solid #e74c3c;
+        }
+
+        @keyframes flowUp {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-50%); }
+        }
+
+        @keyframes flowDown {
+            0% { transform: translateY(-50%); }
+            100% { transform: translateY(0); }
+        }
+
+        /* Grid Layer for Dense Field Lines */
+        .field-grid {
+            position: absolute;
+            top: 10%;
+            left: 5%;
+            width: 90%;
+            height: 80%;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(4, 1fr);
+            gap: 15px;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .grid-cell {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Pure CSS Field Line Symbols */
+        .field-symbol {
+            font-size: 24px;
+            font-weight: bold;
+            color: #3498db;
+            opacity: 0.8;
+        }
+
+        /* Moving Arrow Field Lines for Left/Right */
+        .field-line-row {
+            position: absolute;
+            width: 90%;
+            left: 5%;
+            height: 20px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
             z-index: 1;
         }
 
-        .arrow {
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 0;
-            height: 0;
-            border-left: 15px solid transparent;
-            border-right: 15px solid transparent;
-            z-index: 2;
-        }
-
-        .arrow-up {
-            top: 30%;
-            border-bottom: 40px solid #e74c3c;
-        }
-
-        .arrow-down {
-            bottom: 30%;
-            border-top: 40px solid #e74c3c;
-        }
-
-        .visual-label {
-            position: absolute;
+        .field-arrow {
+            font-size: 22px;
             font-weight: bold;
-            font-size: 14px;
-            padding: 4px 8px;
-            border-radius: 4px;
-            z-index: 3;
+            color: #3498db;
         }
 
-        #currentLabel {
-            background-color: #e74c3c;
-            left: 55%;
+        @keyframes shiftLeft {
+            0% { transform: translateX(20px); opacity: 0; }
+            50% { opacity: 1; }
+            100% { transform: translateX(-20px); opacity: 0; }
         }
 
-        #fieldContainer, #forceContainer {
+        @keyframes shiftRight {
+            0% { transform: translateX(-20px); opacity: 0; }
+            50% { opacity: 1; }
+            100% { transform: translateX(20px); opacity: 0; }
+        }
+
+        .animate-left { animation: shiftLeft 1.5s infinite linear; }
+        .animate-right { animation: shiftRight 1.5s infinite linear; }
+
+        /* Force Feedback Overlays */
+        .force-overlay {
             position: absolute;
+            bottom: 25px;
             width: 100%;
-            height: 100%;
-            top: 0;
-            left: 0;
-            z-index: 2;
+            display: flex;
+            justify-content: center;
+            z-index: 3;
+            pointer-events: none;
         }
+
+        .visual-badge {
+            font-weight: bold;
+            font-size: 15px;
+            padding: 8px 14px;
+            border-radius: 6px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .badge-current { background-color: #e74c3c; position: absolute; top: 15px; left: 50%; transform: translateX(-50%); z-index: 4;}
     </style>
 </head>
 <body>
@@ -168,13 +255,13 @@
     <h1>Magnetic Force</h1>
 
     <div class="container">
-        <!-- Configuration Controls -->
+        <!-- Dashboard Control Box -->
         <div class="panel">
             <div class="group">
                 <label>1. Current Direction (I)</label>
                 <div class="buttons">
-                    <button class="active" onclick="updateCurrent('up', this)">↑ UP</button>
-                    <button onclick="updateCurrent('down', this)">↓ DOWN</button>
+                    <button class="active" onclick="updateCurrent('up', this)">↑ UP (Flowing)</button>
+                    <button onclick="updateCurrent('down', this)">↓ DOWN (Flowing)</button>
                 </div>
             </div>
 
@@ -194,16 +281,27 @@
             </div>
         </div>
 
-        <!-- Safe Simulation Box -->
+        <!-- Safe Graphic Viewport -->
         <div class="display-window">
-            <!-- Central Wire -->
-            <div class="wire"></div>
-            <div id="currentArrow" class="arrow arrow-up"></div>
-            <div id="currentLabel" class="visual-label" style="top: 45%;">Current (I)</div>
+            <div class="visual-badge badge-current">Wire: Current (I)</div>
+            
+            <!-- Central Physical Wire Module -->
+            <div class="wire-container">
+                <div class="wire-core"></div>
+                <div id="streamBox" class="current-stream" style="animation: flowUp 1.2s infinite linear;">
+                    <div class="current-arrow up"></div>
+                    <div class="current-arrow up"></div>
+                    <div class="current-arrow up"></div>
+                    <div class="current-arrow up"></div>
+                    <div class="current-arrow up"></div>
+                </div>
+            </div>
 
-            <!-- Dynamic Vectors Layers -->
-            <div id="fieldContainer"></div>
-            <div id="forceContainer"></div>
+            <!-- Heavy Field Vectors Layers -->
+            <div id="fieldMatrix"></div>
+
+            <!-- Resulting Force Presentation Layer -->
+            <div id="forceFeedback" class="force-overlay"></div>
         </div>
     </div>
 
@@ -214,87 +312,28 @@
         function updateCurrent(dir, btn) {
             currentDir = dir;
             clearActive(btn);
-            document.getElementById('currentArrow').className = 'arrow arrow-' + dir;
-            document.getElementById('currentLabel').style.top = dir === 'up' ? '45%' : '45%';
-            runPhysics();
-        }
-
-        function updateField(dir, btn) {
-            fieldDir = dir;
-            clearActive(btn);
-            runPhysics();
-        }
-
-        function clearActive(clickedBtn) {
-            const parent = clickedBtn.parentElement;
-            const buttons = parent.getElementsByTagName('button');
-            for(let btn of buttons) {
-                btn.classList.remove('active');
-            }
-            clickedBtn.classList.add('active');
-        }
-
-        function runPhysics() {
-            let force = "";
-            let fieldHTML = "";
-            let forceHTML = "";
-
-            // Calculate precise physics rules
-            if (currentDir === 'up') {
-                if (fieldDir === 'left')  force = "Out of the Page / Forward";
-                if (fieldDir === 'right') force = "Into the Page / Backward";
-                if (fieldDir === 'into')  force = "Left";
-                if (fieldDir === 'out')   force = "Right";
+            
+            const streamBox = document.getElementById('streamBox');
+            // Rebuild the arrows dynamically inside the flowing stream
+            if (dir === 'up') {
+                streamBox.style.animation = 'flowUp 1.2s infinite linear';
+                streamBox.innerHTML = `
+                    <div class="current-arrow up"></div>
+                    <div class="current-arrow up"></div>
+                    <div class="current-arrow up"></div>
+                    <div class="current-arrow up"></div>
+                    <div class="current-arrow up"></div>
+                `;
             } else {
-                if (fieldDir === 'left')  force = "Into the Page / Backward";
-                if (fieldDir === 'right') force = "Out of the Page / Forward";
-                if (fieldDir === 'into')  force = "Right";
-                if (fieldDir === 'out')   force = "Left";
-            }
-
-            // Print textual solution directly into UI layout
-            document.getElementById('forceResult').textContent = force;
-
-            // Generate Magnetic Field (B) Indicators
-            if (fieldDir === 'left') {
-                fieldHTML = `
-                    <div class="visual-label" style="background:#3498db; left:70%; top:25%;">← B Field</div>
-                    <div class="visual-label" style="background:#3498db; left:15%; top:25%;">← B Field</div>
-                `;
-            } else if (fieldDir === 'right') {
-                fieldHTML = `
-                    <div class="visual-label" style="background:#3498db; left:70%; top:25%;">B Field →</div>
-                    <div class="visual-label" style="background:#3498db; left:15%; top:25%;">B Field →</div>
-                `;
-            } else if (fieldDir === 'into') {
-                fieldHTML = `
-                    <div class="visual-label" style="background:#3498db; left:20%; top:25%;">⊗ B (Into Plane)</div>
-                    <div class="visual-label" style="background:#3498db; left:60%; top:25%;">⊗ B (Into Plane)</div>
-                `;
-            } else if (fieldDir === 'out') {
-                fieldHTML = `
-                    <div class="visual-label" style="background:#3498db; left:20%; top:25%;">⊙ B (Out of Plane)</div>
-                    <div class="visual-label" style="background:#3498db; left:60%; top:25%;">⊙ B (Out of Plane)</div>
+                streamBox.style.animation = 'flowDown 1.2s infinite linear';
+                streamBox.innerHTML = `
+                    <div class="current-arrow down"></div>
+                    <div class="current-arrow down"></div>
+                    <div class="current-arrow down"></div>
+                    <div class="current-arrow down"></div>
+                    <div class="current-arrow down"></div>
                 `;
             }
-
-            // Generate Force (F) Indicators
-            if (force === "Left") {
-                forceHTML = `<div class="visual-label" style="background:#2ecc71; left:15%; top:70%;">← Force (F)</div>`;
-            } else if (force === "Right") {
-                forceHTML = `<div class="visual-label" style="background:#2ecc71; left:65%; top:70%;">Force (F) →</div>`;
-            } else if (force.includes("Into the Page")) {
-                forceHTML = `<div class="visual-label" style="background:#2ecc71; left:35%; top:70%;">⊗ Force (Into Plane)</div>`;
-            } else if (force.includes("Out of the Page")) {
-                forceHTML = `<div class="visual-label" style="background:#2ecc71; left:35%; top:70%;">⊙ Force (Out of Plane)</div>`;
-            }
-
-            document.getElementById('fieldContainer').innerHTML = fieldHTML;
-            document.getElementById('forceContainer').innerHTML = forceHTML;
+            runPhysics();
         }
 
-        // Initialize setup on load
-        runPhysics();
-    </script>
-</body>
-</html>

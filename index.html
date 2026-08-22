@@ -5,298 +5,296 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Magnetic Force</title>
     <style>
-        :root {
-            --bg-color: #1e1e2e;
-            --panel-bg: #252538;
-            --text-color: #cdd6f4;
-            --current-color: #f38ba8;
-            --field-color: #89b4fa;
-            --force-color: #a6e3a1;
-        }
-
         body {
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
+            font-family: Arial, sans-serif;
+            background-color: #1a1a24;
+            color: #ffffff;
             margin: 0;
             padding: 20px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            min-height: 100vh;
         }
 
         h1 {
-            margin-bottom: 5px;
-            font-size: 1.8rem;
-            text-align: center;
-        }
-
-        .subtitle {
-            margin-top: 0;
-            margin-bottom: 25px;
-            color: #a6adc8;
-            font-size: 0.95rem;
-            text-align: center;
+            margin-bottom: 20px;
         }
 
         .container {
             display: flex;
             flex-wrap: wrap;
-            gap: 30px;
+            gap: 20px;
             justify-content: center;
-            align-items: flex-start;
-            max-width: 1000px;
+            max-width: 900px;
             width: 100%;
         }
 
-        .control-panel {
-            background-color: var(--panel-bg);
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+        .panel {
+            background-color: #242434;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
             flex: 1;
             min-width: 300px;
-            max-width: 400px;
         }
 
-        .control-group {
-            margin-bottom: 25px;
+        .group {
+            margin-bottom: 20px;
         }
 
         label {
             display: block;
             font-weight: bold;
             margin-bottom: 10px;
-            font-size: 1.1rem;
         }
 
-        .btn-group, .btn-group-4 {
+        .buttons {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: 1fr 1fr;
             gap: 10px;
         }
 
         button {
-            background-color: #313244;
-            color: var(--text-color);
+            background-color: #3b3b4f;
+            color: white;
             border: 2px solid transparent;
             padding: 12px;
-            border-radius: 8px;
+            border-radius: 6px;
             cursor: pointer;
-            font-weight: 600;
-            font-size: 0.95rem;
-            transition: all 0.2s ease;
+            font-weight: bold;
+            font-size: 14px;
         }
 
         button:hover {
-            background-color: #45475a;
+            background-color: #4c4c6d;
         }
 
-        button.active[data-type="current"] {
-            background-color: rgba(243, 139, 168, 0.2);
-            border-color: var(--current-color);
-            color: var(--current-color);
+        button.active {
+            background-color: #007acc;
+            border-color: #00bfff;
         }
 
-        button.active[data-type="field"] {
-            background-color: rgba(137, 180, 250, 0.2);
-            border-color: var(--field-color);
-            color: var(--field-color);
-        }
-
-        .output-box {
-            margin-top: 25px;
+        .output {
+            margin-top: 20px;
             padding: 15px;
-            background-color: #11111b;
-            border-radius: 8px;
-            border-left: 5px solid var(--force-color);
+            background-color: #111116;
+            border-radius: 6px;
+            border-left: 5px solid #2ecc71;
         }
 
-        .output-label {
-            font-size: 0.85rem;
-            color: #a6adc8;
+        .output-title {
+            font-size: 12px;
+            color: #888;
             text-transform: uppercase;
-            letter-spacing: 1px;
             margin-bottom: 5px;
         }
 
-        .output-value {
-            font-size: 1.4rem;
+        .output-text {
+            font-size: 20px;
             font-weight: bold;
-            color: var(--force-color);
+            color: #2ecc71;
         }
 
-        .canvas-container {
-            background-color: var(--panel-bg);
-            border-radius: 12px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-            padding: 15px;
-        }
-
-        canvas {
-            background-color: #11111b;
+        .display-window {
+            background-color: #111116;
+            border: 2px solid #3b3b4f;
             border-radius: 8px;
-            display: block;
+            width: 400px;
+            height: 400px;
+            position: relative;
+            overflow: hidden;
         }
 
-        .legend {
-            display: flex;
-            justify-content: space-around;
-            margin-top: 15px;
-            font-size: 0.85rem;
-            font-weight: 500;
-        }
-
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .legend-dot {
+        /* Pure CSS Simulation Elements */
+        .wire {
+            position: absolute;
+            left: 50%;
+            top: 10%;
             width: 12px;
-            height: 12px;
-            border-radius: 50%;
+            height: 80%;
+            background-color: #7f8c8d;
+            transform: translateX(-50%);
+            border-radius: 4px;
+            z-index: 1;
+        }
+
+        .arrow {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            z-index: 2;
+        }
+
+        .arrow-up {
+            top: 30%;
+            border-bottom: 40px solid #e74c3c;
+        }
+
+        .arrow-down {
+            bottom: 30%;
+            border-top: 40px solid #e74c3c;
+        }
+
+        .visual-label {
+            position: absolute;
+            font-weight: bold;
+            font-size: 14px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            z-index: 3;
+        }
+
+        #currentLabel {
+            background-color: #e74c3c;
+            left: 55%;
+        }
+
+        #fieldContainer, #forceContainer {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: 2;
         }
     </style>
 </head>
 <body>
 
     <h1>Magnetic Force</h1>
-    <div class="subtitle">Interactive 2D Vector Laboratory</div>
 
     <div class="container">
-        <div class="control-panel">
-            <div class="control-group">
+        <!-- Configuration Controls -->
+        <div class="panel">
+            <div class="group">
                 <label>1. Current Direction (I)</label>
-                <div class="btn-group">
-                    <button class="active" data-type="current" data-val="up">↑ UP</button>
-                    <button data-type="current" data-val="down">↓ DOWN</button>
+                <div class="buttons">
+                    <button class="active" onclick="updateCurrent('up', this)">↑ UP</button>
+                    <button onclick="updateCurrent('down', this)">↓ DOWN</button>
                 </div>
             </div>
 
-            <div class="control-group">
-                <label>2. Magnetic Field (B)</label>
-                <div class="btn-group-4">
-                    <button class="active" data-type="field" data-val="left">← LEFT</button>
-                    <button data-type="field" data-val="right">→ RIGHT</button>
-                    <button data-type="field" data-val="into">⊗ INTO PLANE</button>
-                    <button data-type="field" data-val="out">⊙ OUT OF PLANE</button>
+            <div class="group">
+                <label>2. Magnetic Field Direction (B)</label>
+                <div class="buttons">
+                    <button class="active" onclick="updateField('left', this)">← LEFT</button>
+                    <button onclick="updateField('right', this)">→ RIGHT</button>
+                    <button onclick="updateField('into', this)">⊗ INTO PLANE</button>
+                    <button onclick="updateField('out', this)">⊙ OUT OF PLANE</button>
                 </div>
             </div>
 
-            <div class="output-box">
-                <div class="output-label">Resulting Magnetic Force (F)</div>
-                <div class="output-value" id="forceText">Out of the Page / Forward</div>
+            <div class="output">
+                <div class="output-title">Direction of Force (F)</div>
+                <div class="output-text" id="forceResult">Out of the Page / Forward</div>
             </div>
         </div>
 
-        <div class="canvas-container">
-            <canvas id="simCanvas" width="400" height="400"></canvas>
-            <div class="legend">
-                <div class="legend-item"><div class="legend-dot" style="background-color: var(--current-color);"></div> Current</div>
-                <div class="legend-item"><div class="legend-dot" style="background-color: var(--field-color);"></div> Field</div>
-                <div class="legend-item"><div class="legend-dot" style="background-color: var(--force-color);"></div> Force</div>
-            </div>
+        <!-- Safe Simulation Box -->
+        <div class="display-window">
+            <!-- Central Wire -->
+            <div class="wire"></div>
+            <div id="currentArrow" class="arrow arrow-up"></div>
+            <div id="currentLabel" class="visual-label" style="top: 45%;">Current (I)</div>
+
+            <!-- Dynamic Vectors Layers -->
+            <div id="fieldContainer"></div>
+            <div id="forceContainer"></div>
         </div>
     </div>
 
     <script>
-        const canvas = document.getElementById('simCanvas');
-        const ctx = canvas.getContext('2d');
-        const forceText = document.getElementById('forceText');
-
         let currentDir = 'up';
         let fieldDir = 'left';
 
-        document.querySelectorAll('button').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const type = btn.getAttribute('data-type');
-                const val = btn.getAttribute('data-val');
-                document.querySelectorAll(`button[data-type="${type}"]`).forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                if (type === 'current') currentDir = val;
-                if (type === 'field') fieldDir = val;
-                calculatePhysics();
-            });
-        });
+        function updateCurrent(dir, btn) {
+            currentDir = dir;
+            clearActive(btn);
+            document.getElementById('currentArrow').className = 'arrow arrow-' + dir;
+            document.getElementById('currentLabel').style.top = dir === 'up' ? '45%' : '45%';
+            runPhysics();
+        }
 
-        function calculatePhysics() {
-            let forceDesc = "";
+        function updateField(dir, btn) {
+            fieldDir = dir;
+            clearActive(btn);
+            runPhysics();
+        }
+
+        function clearActive(clickedBtn) {
+            const parent = clickedBtn.parentElement;
+            const buttons = parent.getElementsByTagName('button');
+            for(let btn of buttons) {
+                btn.classList.remove('active');
+            }
+            clickedBtn.classList.add('active');
+        }
+
+        function runPhysics() {
+            let force = "";
+            let fieldHTML = "";
+            let forceHTML = "";
+
+            // Calculate precise physics rules
             if (currentDir === 'up') {
-                if (fieldDir === 'left')  forceDesc = "Out of the Page / Forward";
-                if (fieldDir === 'right') forceDesc = "Into the Page / Backward";
-                if (fieldDir === 'into')  forceDesc = "Left";
-                if (fieldDir === 'out')   forceDesc = "Right";
+                if (fieldDir === 'left')  force = "Out of the Page / Forward";
+                if (fieldDir === 'right') force = "Into the Page / Backward";
+                if (fieldDir === 'into')  force = "Left";
+                if (fieldDir === 'out')   force = "Right";
             } else {
-                if (fieldDir === 'left')  forceDesc = "Into the Page / Backward";
-                if (fieldDir === 'right') forceDesc = "Out of the Page / Forward";
-                if (fieldDir === 'into')  forceDesc = "Right";
-                if (fieldDir === 'out')   forceDesc = "Left";
+                if (fieldDir === 'left')  force = "Into the Page / Backward";
+                if (fieldDir === 'right') force = "Out of the Page / Forward";
+                if (fieldDir === 'into')  force = "Right";
+                if (fieldDir === 'out')   force = "Left";
             }
-            forceText.textContent = forceDesc;
-            draw(forceDesc);
-        }
 
-        function drawSymbol(x, y, type, color) {
-            ctx.lineWidth = 3;
-            ctx.strokeStyle = color;
-            ctx.fillStyle = color;
-            ctx.beginPath();
-            ctx.arc(x, y, 12, 0, Math.PI * 2);
-            ctx.stroke();
+            // Print textual solution directly into UI layout
+            document.getElementById('forceResult').textContent = force;
 
-            if (type === 'into') {
-                ctx.beginPath();
-                ctx.moveTo(x - 6, y - 6); ctx.lineTo(x + 6, y + 6);
-                ctx.moveTo(x + 6, y - 6); ctx.lineTo(x - 6, y + 6);
-                ctx.stroke();
-            } else if (type === 'out') {
-                ctx.beginPath();
-                ctx.arc(x, y, 3, 0, Math.PI * 2);
-                ctx.fill();
-            }
-        }
-
-        function drawArrow(x1, y1, x2, y2, color) {
-            ctx.lineWidth = 5;
-            ctx.strokeStyle = color;
-            ctx.fillStyle = color;
-            ctx.beginPath();
-            ctx.moveTo(x1, y1);
-            ctx.lineTo(x2, y2);
-            ctx.stroke();
-
-            const angle = Math.atan2(y2 - y1, x2 - x1);
-            ctx.beginPath();
-            ctx.moveTo(x2, y2);
-            ctx.lineTo(x2 - 12 * Math.cos(angle - Math.PI/6), y2 - 12 * Math.sin(angle - Math.PI/6));
-            ctx.lineTo(x2 - 12 * Math.cos(angle + Math.PI/6), y2 - 12 * Math.sin(angle + Math.PI/6));
-            ctx.fill();
-        }
-
-        function draw(forceDesc) {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            const cx = 200, cy = 200;
-
-            // Draw Wire
-            ctx.lineWidth = 10;
-            ctx.strokeStyle = '#45475a';
-            ctx.beginPath(); ctx.moveTo(cx, 40); ctx.lineTo(cx, 360); ctx.stroke();
-
-            // Draw Current
-            if (currentDir === 'up') drawArrow(cx, 280, cx, 120, '#f38ba8');
-            else drawArrow(cx, 120, cx, 280, '#f38ba8');
-
-            // Draw Magnetic Field
-            const bColor = '#89b4fa';
+            // Generate Magnetic Field (B) Indicators
             if (fieldDir === 'left') {
-                drawArrow(cx + 100, cy - 40, cx - 100, cy - 40, bColor);
-                drawArrow(cx + 100, cy + 40, cx - 100, cy + 40, bColor);
+                fieldHTML = `
+                    <div class="visual-label" style="background:#3498db; left:70%; top:25%;">← B Field</div>
+                    <div class="visual-label" style="background:#3498db; left:15%; top:25%;">← B Field</div>
+                `;
             } else if (fieldDir === 'right') {
-                drawArrow(cx - 100, cy - 40, cx + 100, cy - 40, bColor);
-                drawArrow(cx - 100, cy + 40, cx + 100, cy + 40, bColor);
-            } else {
-                drawSymbol(cx - 70, cy - 50, fieldDir, bColor);
-                drawSymbol(cx + 70, cy - 50, fieldDir, bColor);
+                fieldHTML = `
+                    <div class="visual-label" style="background:#3498db; left:70%; top:25%;">B Field →</div>
+                    <div class="visual-label" style="background:#3498db; left:15%; top:25%;">B Field →</div>
+                `;
+            } else if (fieldDir === 'into') {
+                fieldHTML = `
+                    <div class="visual-label" style="background:#3498db; left:20%; top:25%;">⊗ B (Into Plane)</div>
+                    <div class="visual-label" style="background:#3498db; left:60%; top:25%;">⊗ B (Into Plane)</div>
+                `;
+            } else if (fieldDir === 'out') {
+                fieldHTML = `
+                    <div class="visual-label" style="background:#3498db; left:20%; top:25%;">⊙ B (Out of Plane)</div>
+                    <div class="visual-label" style="background:#3498db; left:60%; top:25%;">⊙ B (Out of Plane)</div>
+                `;
+            }
+
+            // Generate Force (F) Indicators
+            if (force === "Left") {
+                forceHTML = `<div class="visual-label" style="background:#2ecc71; left:15%; top:70%;">← Force (F)</div>`;
+            } else if (force === "Right") {
+                forceHTML = `<div class="visual-label" style="background:#2ecc71; left:65%; top:70%;">Force (F) →</div>`;
+            } else if (force.includes("Into the Page")) {
+                forceHTML = `<div class="visual-label" style="background:#2ecc71; left:35%; top:70%;">⊗ Force (Into Plane)</div>`;
+            } else if (force.includes("Out of the Page")) {
+                forceHTML = `<div class="visual-label" style="background:#2ecc71; left:35%; top:70%;">⊙ Force (Out of Plane)</div>`;
+            }
+
+            document.getElementById('fieldContainer').innerHTML = fieldHTML;
+            document.getElementById('forceContainer').innerHTML = forceHTML;
+        }
+
+        // Initialize setup on load
+        runPhysics();
+    </script>
+</body>
+</html>

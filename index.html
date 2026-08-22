@@ -3,227 +3,302 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Charles's Law & Motor Effect Portal</title>
+    <title>Magnetic Force on a Wire Simulation</title>
     <style>
+        :root {
+            --bg-color: #1e1e2e;
+            --panel-bg: #252538;
+            --text-color: #cdd6f4;
+            --current-color: #f38ba8;
+            --field-color: #89b4fa;
+            --force-color: #a6e3a1;
+        }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: #f4f6f9;
-            color: #333;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
             margin: 0;
             padding: 20px;
             display: flex;
             flex-direction: column;
             align-items: center;
-        }
-        .container {
-            background: white;
-            padding: 24px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            max-width: 650px;
-            width: 100%;
-            box-sizing: border-box;
-        }
-        h1 { margin-top: 0; color: #111; text-align: center; font-size: 26px; }
-        .description {
-            text-align: center;
-            color: #555;
-            margin-bottom: 20px;
-            font-size: 14px;
-            line-height: 1.5;
-        }
-        
-        /* 2D/3D Vector Lab Frame Display */
-        .lab-viewport {
-            width: 100%;
-            height: 300px;
-            background: #19191e;
-            border-radius: 8px;
-            position: relative;
-            margin-bottom: 20px;
-            overflow: hidden;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        svg {
-            width: 100%;
-            height: 100%;
+            min-height: 100vh;
         }
 
-        .controls {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            margin-bottom: 20px;
+        h1 {
+            margin-bottom: 5px;
+            font-size: 1.8rem;
+            text-align: center;
         }
-        .control-grid {
+
+        .subtitle {
+            margin-top: 0;
+            margin-bottom: 25px;
+            color: #a6adc8;
+            font-size: 0.95rem;
+            text-align: center;
+        }
+
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            justify-content: center;
+            align-items: flex-start;
+            max-width: 1000px;
+            width: 100%;
+        }
+
+        .control-panel {
+            background-color: var(--panel-bg);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+            flex: 1;
+            min-width: 300px;
+            max-width: 400px;
+        }
+
+        .control-group {
+            margin-bottom: 25px;
+        }
+
+        .control-group:last-child {
+            margin-bottom: 0;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        .btn-group {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(2, 1fr);
             gap: 10px;
         }
-        button {
-            padding: 12px 8px;
-            font-size: 13px;
-            font-weight: bold;
-            border: 2px solid #e2e8f0;
-            border-radius: 6px;
-            cursor: pointer;
-            background: #f8fafc;
-            color: #4a5568;
-            transition: all 0.15s ease;
-        }
-        button:hover { background: #edf2f7; border-color: #cbd5e0; }
-        button.active-direction {
-            background: #0066cc;
-            color: white;
-            border-color: #004499;
-            box-shadow: 0 2px 6px rgba(0,102,204,0.3);
-        }
 
-        .stats-dashboard {
+        .btn-group-4 {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
-            background: #f8f9fa;
-            padding: 14px;
-            border-radius: 8px;
-            font-size: 14px;
-            border: 1px solid #e2e8f0;
-            margin-bottom: 20px;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
         }
-        .stats-dashboard div { display: flex; flex-direction: column; gap: 4px; }
-        .stats-dashboard div span { font-weight: bold; font-size: 15px; }
-        .color-i { color: #ffcc00; } 
-        .color-b { color: #3182ce; } 
-        .color-f { color: #e53e3e; } 
 
-        .formula-panel {
-            background: #f0f7ff;
-            border-left: 5px solid #0066cc;
-            padding: 16px;
-            border-radius: 4px;
+        button {
+            background-color: #313244;
+            color: var(--text-color);
+            border: 2px solid transparent;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
         }
-        .formula-title { font-weight: bold; color: #004499; margin-bottom: 8px; font-size: 15px; }
-        .equation-box { font-family: "Courier New", Courier, monospace; font-size: 13px; background: white; padding: 12px; border-radius: 6px; border: 1px solid #cce0ff; line-height: 1.6; }
+
+        button:hover {
+            background-color: #45475a;
+        }
+
+        button.active[data-type="current"] {
+            background-color: rgba(243, 139, 168, 0.2);
+            border-color: var(--current-color);
+            color: var(--current-color);
+        }
+
+        button.active[data-type="field"] {
+            background-color: rgba(137, 180, 250, 0.2);
+            border-color: var(--field-color);
+            color: var(--field-color);
+        }
+
+        .output-box {
+            margin-top: 25px;
+            padding: 15px;
+            background-color: #11111b;
+            border-radius: 8px;
+            border-left: 5px solid var(--force-color);
+        }
+
+        .output-label {
+            font-size: 0.85rem;
+            color: #a6adc8;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+
+        .output-value {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: var(--force-color);
+        }
+
+        .canvas-container {
+            background-color: var(--panel-bg);
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+            padding: 15px;
+            position: relative;
+        }
+
+        canvas {
+            background-color: #11111b;
+            border-radius: 8px;
+            display: block;
+        }
+
+        .legend {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 15px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h1>The Motor Effect Laboratory</h1>
-    <div class="description">
-        <strong>Fleming's Left-Hand Rule Demonstration:</strong> Select a target direction below. The simulation maps out the required magnetic field orientation (B) to jump the current-carrying wire into that precise plane.
-    </div>
-    
-    <!-- Stable Vector Display Window Frame -->
-    <div class="lab-viewport">
-        <svg id="labVisualizer">
-            <!-- Grid Reference Lines -->
-            <line x1="50" y1="150" x2="600" y2="150" stroke="rgba(255,255,255,0.05)" stroke-width="1" />
-            <line x1="325" y1="20" x2="325" y2="280" stroke="rgba(255,255,255,0.05)" stroke-width="1" />
-            
-            <!-- Dynamic Vector Blue Field Arrows (B) -->
-            <g id="fieldVectorGroup"></g>
-            
-            <!-- DYNAMIC COPPER WIRE (Drawn along horizontal plane) -->
-            <path id="wirePath" d="M 50 150 Q 325 150 600 150" stroke="#b87333" stroke-width="6" fill="none" stroke-linecap="round" />
-            
-            <!-- Dynamic Red Force Deflection Indicator Arrow (F) -->
-            <g id="forceArrowGroup"></g>
+    <h1>Magnetic Force (\(\vec{F} = I\vec{L} \times \vec{B}\))</h1>
+    <div class="subtitle">Interactive 3D Perspective Vector Laboratory</div>
 
-            <!-- Animated Golden Current Flow Pulses (Electron dots tracking Left to Right) -->
-            <circle id="pulse1" r="5" fill="#ffcc00" />
-            <circle id="pulse2" r="5" fill="#ffcc00" />
-            <circle id="pulse3" r="5" fill="#ffcc00" />
-        </svg>
-    </div>
-    
-    <div class="controls">
-        <label style="font-weight: 600; font-size: 15px;">Target Deflection Force Direction (F):</label>
-        <div class="control-grid">
-            <button class="dir-btn active-direction" onclick="setForceDirection('left')">← Left</button>
-            <button class="dir-btn" onclick="setForceDirection('right')">→ Right</button>
-            <button class="dir-btn" onclick="setForceDirection('up')">↑ Up</button>
-            <button class="dir-btn" onclick="setForceDirection('down')">↓ Down</button>
-            <button class="dir-btn" onclick="setForceDirection('into')">⊗ Into Plane</button>
-            <button class="dir-btn" onclick="setForceDirection('out')">⊙ Out of Plane</button>
+    <div class="container">
+        <!-- Controls Left -->
+        <div class="control-panel">
+            <div class="control-group">
+                <label>1. Current Direction (\(I\))</label>
+                <div class="btn-group">
+                    <button class="active" data-type="current" data-val="up">↑ UP</button>
+                    <button data-type="current" data-val="down">↓ DOWN</button>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label>2. Magnetic Field Direction (\(\vec{B}\))</label>
+                <div class="btn-group-4">
+                    <button class="active" data-type="field" data-val="left">← LEFT</button>
+                    <button data-type="field" data-val="right">→ RIGHT</button>
+                    <button data-type="field" data-val="into">⊗ INTO PLANE</button>
+                    <button data-type="field" data-val="out">⊙ OUT OF PLANE</button>
+                </div>
+            </div>
+
+            <div class="output-box">
+                <div class="output-label">Resulting Magnetic Force (\(\vec{F}\))</div>
+                <div class="output-value" id="forceText">Out of the Page / Forward</div>
+            </div>
+        </div>
+
+        <!-- Simulation Right -->
+        <div class="canvas-container">
+            <canvas id="simCanvas" width="500" height="500"></canvas>
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-dot" style="background-color: var(--current-color);"></div> Current (\(I\))
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot" style="background-color: var(--field-color);"></div> Magnetic Field (\(\vec{B}\))
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot" style="background-color: var(--force-color);"></div> Force (\(\vec{F}\))
+                </div>
+            </div>
         </div>
     </div>
-    
-    <div class="stats-dashboard">
-        <div>Current Vector (I): <span class="color-i" id="vectorI">Fixed Right (+X)</span></div>
-        <div>Magnetic Field (B): <span class="color-b" id="vectorB">Pointing Into Plane (⊗)</span></div>
-        <div>Resulting Force (F): <span class="color-f" id="vectorF">Deflecting Up (+Y)</span></div>
-    </div>
 
-    <div class="formula-panel">
-        <div class="formula-title">📋 Electromagnetic Force Definition:</div>
-        <div class="equation-box">
-            Vector Formula: F = I × B  (Cross Product Rule)<br>
-            • Current (I): Moving golden electron pulses from Left to Right.<br>
-            • Field lines (B): Blue indices traveling from North to South.<br>
-            • Force (F): Red vector pushing the metal wire framework.
-        </div>
-    </div>
-</div>
+    <script>
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+        const forceText = document.getElementById('forceText');
 
-<script>
-    const wirePath = document.getElementById('wirePath');
-    const fieldVectorGroup = document.getElementById('fieldVectorGroup');
-    const forceArrowGroup = document.getElementById('forceArrowGroup');
-    
-    const pulse1 = document.getElementById('pulse1');
-    const pulse2 = document.getElementById('pulse2');
-    const pulse3 = document.getElementById('pulse3');
+        // State variables
+        let currentDir = 'up';
+        let fieldDir = 'left';
 
-    let animationTime = 0;
-    let currentDirection = 'left';
+        // 3D Isometric Projection setup
+        // Mapping (X, Y, Z) to 2D Canvas pixels (x, y)
+        // X goes Right/Left, Y goes Up/Down, Z goes Into/Out of page (diagonal axis)
+        const originX = 250;
+        const originY = 250;
 
-    // 3D vector labels for 2D presentation
-    const dataMatrix = {
-        left:  { bText: "Out of Plane (⊙)",   fText: "Deflecting Left (-X)",   wireD: "M 50 150 Q 200 150 600 150", arrow: "left" },
-        right: { bText: "Into Plane (⊗)",    fText: "Deflecting Right (+X)",  wireD: "M 50 150 Q 450 150 600 150", arrow: "right" },
-        up:    { bText: "Into Plane (⊗)",    fText: "Deflecting Up (+Y)",     wireD: "M 50 150 Q 325 80 600 150",  arrow: "up" },
-        down:  { bText: "Out of Plane (⊙)",   fText: "Deflecting Down (-Y)",   wireD: "M 50 150 Q 325 220 600 150", arrow: "down" },
-        into:  { bText: "Pointing Up (+Y)",   fText: "Into Plane (⊗ Perspective)", wireD: "M 50 150 Q 325 135 600 150", arrow: "into" },
-        out:   { bText: "Pointing Down (-Y)", fText: "Out of Plane (⊙ Perspective)", wireD: "M 50 150 Q 325 165 600 150", arrow: "out" }
-    };
+        function project(x, y, z) {
+            // Z axis projects diagonally down-left to simulate depth
+            const isoAngle = Math.PI / 6; // 30 degrees
+            return {
+                x: originX + x - z * Math.cos(isoAngle),
+                y: originY - y + z * Math.sin(isoAngle)
+            };
+        }
 
-    function setForceDirection(direction) {
-        currentDirection = direction;
-        
-        // Highlight active control buttons
-        document.querySelectorAll('.dir-btn').forEach(btn => {
-            btn.classList.remove('active-direction');
-            if(btn.innerText.toLowerCase().includes(direction)) {
-                btn.classList.add('active-direction');
-            }
+        // Configure click event listeners
+        document.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const type = btn.getAttribute('data-type');
+                const val = btn.getAttribute('data-val');
+
+                // Toggle active state classes
+                document.querySelectorAll(`button[data-type="${type}"]`).forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                // Update system math values
+                if (type === 'current') currentDir = val;
+                if (type === 'field') fieldDir = val;
+
+                calculatePhysics();
+            });
         });
 
-        // 1. Update text variables
-        document.getElementById('vectorB').innerText = dataMatrix[direction].bText;
-        document.getElementById('vectorF').innerText = dataMatrix[direction].fText;
+        function calculatePhysics() {
+            let forceDirectionDescription = "";
 
-        // 2. Animate the bent copper wire track shape profile
-        wirePath.setAttribute('d', dataMatrix[direction].wireD);
+            // Right hand rule calculations evaluated against your corrected matrix
+            if (currentDir === 'up') {
+                if (fieldDir === 'left')  forceDirectionDescription = "Out of the Page / Forward";
+                if (fieldDir === 'right') forceDirectionDescription = "Into the Page / Backward";
+                if (fieldDir === 'into')  forceDirectionDescription = "Left";
+                if (fieldDir === 'out')   forceDirectionDescription = "Right";
+            } else { // Down
+                if (fieldDir === 'left')  forceDirectionDescription = "Into the Page / Backward";
+                if (fieldDir === 'right') forceDirectionDescription = "Out of the Page / Forward";
+                if (fieldDir === 'into')  forceDirectionDescription = "Right";
+                if (fieldDir === 'out')   forceDirectionDescription = "Left";
+            }
 
-        // 3. Redraw Blue Magnetic Field Lines indicators (B)
-        fieldVectorGroup.innerHTML = '';
-        if (direction === 'up' || direction === 'right') {
-            // Draw cross signs for Into-Plane (⊗)
-            for (let x = 150; x <= 500; x += 100) {
-                fieldVectorGroup.innerHTML += `<circle cx="${x}" cy="90" r="10" stroke="#3182ce" stroke-width="2" fill="none"/>`;
-                fieldVectorGroup.innerHTML += `<line x1="${x}-6" y1="84" x2="${x}+6" y2="96" stroke="#3182ce" stroke-width="2"/>`;
-                fieldVectorGroup.innerHTML += `<line x1="${x}+6" y1="84" x2="${x}-6" y2="96" stroke="#3182ce" stroke-width="2"/>`;
-            }
-        } else if (direction === 'down' || direction === 'left') {
-            // Draw dot signs for Out-of-Plane (⊙)
-            for (let x = 150; x <= 500; x += 100) {
-                fieldVectorGroup.innerHTML += `<circle cx="${x}" cy="90" r="10" stroke="#3182ce" stroke-width="2" fill="none"/>`;
-                fieldVectorGroup.innerHTML += `<circle cx="${x}" cy="90" r="3" fill="#3182ce"/>`;
-            }
-        } else if (direction === 'into') {
-            // Field points Up vertically
-            for (let x = 200; x <= 450; x += 80) {
-                fieldVectorGroup.innerHTML += `<line x1="${x}" y1="200" x2="${x}" y2="70" stroke="#3182ce" stroke-width="3" marker-end="url(#arrow)"/>`;
+            forceText.textContent = forceDirectionDescription;
+            drawSimulation(forceDirectionDescription);
+        }
+
+        function drawArrow(ctx, fromX, fromY, fromZ, toX, toY, toZ, color, lineWidth = 4, isDashed = false) {
+            const pFrom = project(fromX, fromY, fromZ);
+            const pTo = project(toX, toY, toZ);
+
+            ctx.beginPath();
+            ctx.strokeStyle = color;
+            ctx.lineWidth = lineWidth;
+            if (isDashed) ctx.setLineDash([4, 4]);
+            else ctx.setLineDash([]);
+            
+            ctx.moveTo(pFrom.x, pFrom.y);
+            ctx.lineTo(pTo.x, pTo.y);
+            ctx.stroke();
+            ctx.setLineDash([]); // Reset line configurations
+
+            // Draw clean arrow heads in 2D space
+            const angle = Math.atan2(pTo.y - pFrom.y, pTo.x - pFrom.x);
+            ctx.beginPath();
+            ctx.fillStyle = color;
